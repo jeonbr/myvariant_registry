@@ -14,34 +14,6 @@ def get_client(biothing_type, instance=True, *args, **kwargs):
     else:
         return biothings_client.get_client(biothing_type, instance, *args, **kwargs)
 
-def extract_myvariant_id(json_res):
-    """extract myvariant id from clingen response
-    result : myvariant hg19 id list
-    if not myvariant entry : return 0
-    if error : return -1
-    """
-    try:
-        _id = json_res['externalRecords']['MyVariantInfo_hg19'][0]['id']
-    except KeyError:
-        _id = None
-        
-    return _id
-
-    
-def get_myvariant_ids(hgvs_ids):
-    workers = min(MAX_WORKERS, len(hgvs_ids))   
-    
-    with futures.ThreadPoolExecutor(workers) as executor:   
-        res = executor.map(get_myvariant_id, hgvs_ids)   
-  
-    return list(res)
-
-def post_myvariant_id(hgvs_ids):
-    """clingen request with hgvs and get myvariant ids by POST method"""
-    url = f'http://reg.genome.network/alleles?file=hgvs'
-    res = requests.post(url, data="\n".join(hgvs_ids))
-    return [ extract_myvariant_id(r) for r in res.json() ]
-
 
 class MyVariantWrapper:
     def __init__(self):
