@@ -3,14 +3,18 @@ import asyncio
 from aiohttp import web
 import functools
 
+
 def extract_myvariant_id(json_res):
     """extract myvariant id from clingen response
-    result : myvariant hg19 id list
-    if not myvariant entry : return 0
-    if error : return -1
+    result : myvariant hg19 id
+    if not myvariant entry : return None
+    It is assumed that there is only one myvariant id in json.
     """
-    _id = json_res['externalRecords']['MyVariantInfo_hg19'][0]['id']
-    return _id
+    try:
+        _id = json_res['externalRecords']['MyVariantInfo_hg19'][0]['id']
+    except KeyError:
+        _id = None
+    return _id 
 
 async def get_myvariant_id(hgvs):
     """clingen request with hgvs and get myvariant ids by GET method"""
@@ -34,9 +38,6 @@ async def VariantGETHandler(request):
     args = dict(request.query)
     args_string = request.query_string
     loop = asyncio.get_event_loop()
-    print(f"variantid: {variantid}")
-    print(f"args: {dict(args)}")
-    print(f"args_string: {args_string}")
     try:
         """ if GET has a external=hgvsclingen option
             Then get a hg19 myvariant id from clingen
@@ -73,8 +74,6 @@ async def VariantPOSTHandler(request):
     data = dict(data)
     variantids = data.get('ids', False )
     loop = asyncio.get_event_loop()
-    print(f"variantid: {variantids}")
-    print(f"data: {dict(data)}")
 
     try:
         """ if POST has a external=hgvsclingen option
